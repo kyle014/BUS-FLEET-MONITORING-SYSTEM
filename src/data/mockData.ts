@@ -1,0 +1,243 @@
+import { Bus, Trip, Route, LostAndFoundItem } from '../types';
+
+export const mockBuses: Bus[] = [
+  {
+    id: 'bus1',
+    plateNumber: 'ABC 1234',
+    driver: 'Juan Dela Cruz',
+    route: 'City Center - Barangay Hall',
+    status: 'active',
+    currentPassengers: 12,
+    maxCapacity: 18,
+    location: {
+      lat: 14.5995,
+      lng: 120.9842,
+      lastUpdated: new Date()
+    },
+    currentTrip: 'trip1',
+    qrCodeId: 'QR-ABC1234-F8E9D2'
+  },
+  {
+    id: 'bus2',
+    plateNumber: 'XYZ 5678',
+    driver: 'Maria Santos',
+    route: 'Market - Terminal',
+    status: 'active',
+    currentPassengers: 8,
+    maxCapacity: 18,
+    location: {
+      lat: 14.6042,
+      lng: 120.9822,
+      lastUpdated: new Date()
+    },
+    currentTrip: 'trip2',
+    qrCodeId: 'QR-XYZ5678-A3B7C1'
+  },
+  {
+    id: 'bus3',
+    plateNumber: 'DEF 9012',
+    driver: 'Pedro Reyes',
+    route: 'City Center - Barangay Hall',
+    status: 'idle',
+    currentPassengers: 0,
+    maxCapacity: 18,
+    location: {
+      lat: 14.5935,
+      lng: 120.9862,
+      lastUpdated: new Date()
+    },
+    qrCodeId: 'QR-DEF9012-D4E6F8'
+  },
+  {
+    id: 'bus4',
+    plateNumber: 'GHI 3456',
+    driver: 'Ana Cruz',
+    route: 'Market - Terminal',
+    status: 'maintenance',
+    currentPassengers: 0,
+    maxCapacity: 18,
+    location: {
+      lat: 14.5895,
+      lng: 120.9802,
+      lastUpdated: new Date()
+    },
+    qrCodeId: 'QR-GHI3456-B2C9E5'
+  }
+];
+
+export const mockTrips: Trip[] = [
+  {
+    id: 'trip1',
+    busId: 'bus1',
+    busPlateNumber: 'ABC 1234',
+    driver: 'Juan Dela Cruz',
+    route: 'City Center - Barangay Hall',
+    startTime: new Date(Date.now() - 1800000), // 30 mins ago
+    status: 'ongoing',
+    passengersBoarded: 15,
+    totalFare: 225,
+    stops: [
+      {
+        id: 'stop1',
+        location: 'City Center Terminal',
+        time: new Date(Date.now() - 1800000),
+        passengersOn: 8,
+        passengersOff: 0,
+        fare: 120
+      },
+      {
+        id: 'stop2',
+        location: 'Main Street',
+        time: new Date(Date.now() - 1200000),
+        passengersOn: 5,
+        passengersOff: 2,
+        fare: 75
+      },
+      {
+        id: 'stop3',
+        location: 'Market Area',
+        time: new Date(Date.now() - 600000),
+        passengersOn: 4,
+        passengersOff: 3,
+        fare: 60
+      }
+    ]
+  },
+  {
+    id: 'trip2',
+    busId: 'bus2',
+    busPlateNumber: 'XYZ 5678',
+    driver: 'Maria Santos',
+    route: 'Market - Terminal',
+    startTime: new Date(Date.now() - 900000), // 15 mins ago
+    status: 'ongoing',
+    passengersBoarded: 10,
+    totalFare: 150,
+    stops: [
+      {
+        id: 'stop4',
+        location: 'Public Market',
+        time: new Date(Date.now() - 900000),
+        passengersOn: 6,
+        passengersOff: 0,
+        fare: 90
+      },
+      {
+        id: 'stop5',
+        location: 'Church Plaza',
+        time: new Date(Date.now() - 450000),
+        passengersOn: 4,
+        passengersOff: 2,
+        fare: 60
+      }
+    ]
+  }
+];
+
+export const mockRoutes: Route[] = [
+  {
+    id: 'route1',
+    name: 'Route 1: City Center - Barangay Hall',
+    origin: 'City Center Terminal',
+    destination: 'Barangay Hall',
+    stops: ['City Center Terminal', 'Main Street', 'Market Area', 'Church Plaza', 'School Zone', 'Barangay Hall'],
+    baseFare: 15,
+    estimatedDuration: 45
+  },
+  {
+    id: 'route2',
+    name: 'Route 2: Market - Terminal',
+    origin: 'Public Market',
+    destination: 'Transport Terminal',
+    stops: ['Public Market', 'Church Plaza', 'City Hall', 'Main Street', 'Transport Terminal'],
+    baseFare: 15,
+    estimatedDuration: 30
+  },
+  {
+    id: 'route3',
+    name: 'Route 3: Coastal Road Loop',
+    origin: 'Pier Area',
+    destination: 'Pier Area',
+    stops: ['Pier Area', 'Beach Resort', 'Fishing Village', 'Lighthouse', 'Port Gate', 'Pier Area'],
+    baseFare: 20,
+    estimatedDuration: 60
+  }
+];
+
+export const mockLostAndFoundItems: LostAndFoundItem[] = [
+  {
+    id: 'lf1',
+    itemName: 'Samsung Galaxy Phone',
+    description: 'Black Samsung phone with cracked screen protector, blue case',
+    category: 'electronics',
+    dateFound: new Date(Date.now() - 86400000 * 2), // 2 days ago
+    busPlateNumber: 'ABC 1234',
+    route: 'City Center - Barangay Hall',
+    foundBy: 'Juan Dela Cruz',
+    status: 'unclaimed',
+    location: 'Under seat near the back door',
+  },
+  {
+    id: 'lf2',
+    itemName: 'Black Backpack',
+    description: 'Black Jansport backpack with school books and notebook inside',
+    category: 'bag',
+    dateFound: new Date(Date.now() - 86400000 * 5), // 5 days ago
+    busPlateNumber: 'XYZ 5678',
+    route: 'Market - Terminal',
+    foundBy: 'Maria Santos',
+    status: 'unclaimed',
+    location: 'Left on passenger seat',
+  },
+  {
+    id: 'lf3',
+    itemName: 'Blue Umbrella',
+    description: 'Foldable blue umbrella with floral pattern',
+    category: 'accessories',
+    dateFound: new Date(Date.now() - 86400000), // 1 day ago
+    busPlateNumber: 'ABC 1234',
+    route: 'City Center - Barangay Hall',
+    foundBy: 'Juan Dela Cruz',
+    status: 'unclaimed',
+    location: 'Near the entrance',
+  },
+  {
+    id: 'lf4',
+    itemName: 'Brown Wallet',
+    description: 'Brown leather wallet with ID cards (name withheld for security)',
+    category: 'accessories',
+    dateFound: new Date(Date.now() - 86400000 * 3), // 3 days ago
+    busPlateNumber: 'DEF 9012',
+    route: 'City Center - Barangay Hall',
+    foundBy: 'Pedro Reyes',
+    status: 'claimed',
+    claimedBy: 'Owner verified via ID',
+    claimedDate: new Date(Date.now() - 86400000),
+    location: 'Between seats',
+  },
+  {
+    id: 'lf5',
+    itemName: 'Red Jacket',
+    description: 'Red Nike windbreaker jacket, size M',
+    category: 'clothing',
+    dateFound: new Date(Date.now() - 86400000 * 7), // 7 days ago
+    busPlateNumber: 'XYZ 5678',
+    route: 'Market - Terminal',
+    foundBy: 'Maria Santos',
+    status: 'unclaimed',
+    location: 'Hanging on seat handle',
+  },
+  {
+    id: 'lf6',
+    itemName: 'Document Folder',
+    description: 'Manila envelope with important documents (contents secured)',
+    category: 'documents',
+    dateFound: new Date(Date.now() - 86400000 * 4), // 4 days ago
+    busPlateNumber: 'ABC 1234',
+    route: 'City Center - Barangay Hall',
+    foundBy: 'Juan Dela Cruz',
+    status: 'unclaimed',
+    contactInfo: 'Contact terminal office: 555-1234',
+    location: 'Under driver seat area',
+  },
+];
