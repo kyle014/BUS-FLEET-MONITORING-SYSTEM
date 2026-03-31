@@ -1,38 +1,38 @@
-import { AlertCircle, Eye, EyeOff, Lock, LogIn, Shield, User } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useState } from 'react'
+import { AlertCircle, Eye, EyeOff, Lock, LogIn, Shield, User } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useState } from 'react';
 
 interface AdminLoginProps {
-  onLoginSuccess: () => void
-  onBack: () => void
+  onLoginSuccess: () => void;
+  onBack: () => void;
 }
 
 export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
-  const [username, setUsername] = useState('admin')
-  const [password, setPassword] = useState('admin123')
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin123');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Demo credentials
-  const DEMO_USERNAME = 'admin'
-  const DEMO_PASSWORD = 'admin123'
+  const DEMO_USERNAME = 'admin';
+  const DEMO_PASSWORD = 'admin123';
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
 
     // Simulate login delay
     setTimeout(() => {
       if (username === DEMO_USERNAME && password === DEMO_PASSWORD) {
-        onLoginSuccess()
+        onLoginSuccess();
       } else {
-        setError('Invalid username or password')
-        setIsLoading(false)
+        setError('Invalid username or password');
+        setIsLoading(false);
       }
-    }, 800)
-  }
+    }, 800);
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4">
@@ -202,5 +202,5 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

@@ -1,21 +1,21 @@
-import { Bus, Calendar, DollarSign, Download, FileText, Filter, TrendingUp, Users } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useState } from 'react'
+import { Bus, Calendar, DollarSign, Download, FileText, Filter, TrendingUp, Users } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useState } from 'react';
 
 export function Reports() {
-  const [selectedReport, setSelectedReport] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily')
-  const [dateRange, setDateRange] = useState({ start: '2024-12-01', end: '2024-12-09' })
+  const [selectedReport, setSelectedReport] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
+  const [dateRange, setDateRange] = useState({ start: '2024-12-01', end: '2024-12-09' });
 
   const downloadReport = (format: 'pdf' | 'excel' | 'csv') => {
-    alert(`Downloading report in ${format.toUpperCase()} format...`)
-  }
+    alert(`Downloading report in ${format.toUpperCase()} format...`);
+  };
 
   const reportTypes = [
     { id: 'daily' as const, label: 'Daily Report', icon: Calendar },
     { id: 'weekly' as const, label: 'Weekly Summary', icon: TrendingUp },
     { id: 'monthly' as const, label: 'Monthly Report', icon: FileText },
     { id: 'custom' as const, label: 'Custom Range', icon: Filter },
-  ]
+  ];
 
   const dailyData = {
     date: 'December 9, 2024',
@@ -25,14 +25,14 @@ export function Reports() {
     avgTripDuration: 42,
     busUtilization: 87,
     peakHours: ['7:00 AM - 9:00 AM', '5:00 PM - 7:00 PM'],
-  }
+  };
 
   const tripsByBus = [
     { plate: 'ABC 1234', trips: 12, passengers: 168, revenue: 2520, avgDuration: 41 },
     { plate: 'XYZ 5678', trips: 11, passengers: 154, revenue: 2310, avgDuration: 43 },
     { plate: 'DEF 9012', trips: 10, passengers: 140, revenue: 2100, avgDuration: 40 },
     { plate: 'GHI 3456', trips: 9, passengers: 126, revenue: 1890, avgDuration: 44 },
-  ]
+  ];
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8">
@@ -52,7 +52,7 @@ export function Reports() {
           <h3 className="text-gray-900 mb-4">Select Report Type</h3>
           <div className="grid md:grid-cols-4 gap-4">
             {reportTypes.map((type) => {
-              const Icon = type.icon
+              const Icon = type.icon;
               return (
                 <button
                   key={type.id}
@@ -70,7 +70,7 @@ export function Reports() {
                   />
                   <div className={selectedReport === type.id ? 'text-gray-900' : 'text-gray-600'}>{type.label}</div>
                 </button>
-              )
+              );
             })}
           </div>
         </motion.div>
@@ -300,5 +300,5 @@ export function Reports() {
         </motion.div>
       </div>
     </div>
-  )
+  );
 }

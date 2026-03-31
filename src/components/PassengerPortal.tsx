@@ -1,53 +1,53 @@
-import { Bus, Clock, MapPin, Navigation, Radio, Star, Users } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { busAPI } from '../utils/api'
-import { BusInfoPublic } from './BusInfoPublic'
+import { Bus, Clock, MapPin, Navigation, Radio, Star, Users } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { busAPI } from '../utils/api';
+import { BusInfoPublic } from './BusInfoPublic';
 
 export function PassengerPortal() {
-  const [selectedDirection, setSelectedDirection] = useState<'to-alabang' | 'to-dasmarinas'>('to-alabang')
-  const [nearbyBuses, setNearbyBuses] = useState<any[]>([])
-  const [selectedBusId, setSelectedBusId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [selectedDirection, setSelectedDirection] = useState<'to-alabang' | 'to-dasmarinas'>('to-alabang');
+  const [nearbyBuses, setNearbyBuses] = useState<any[]>([]);
+  const [selectedBusId, setSelectedBusId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadBuses()
+    loadBuses();
 
     // Refresh bus data every 10 seconds
     const interval = setInterval(() => {
-      loadBuses()
-    }, 10000)
+      loadBuses();
+    }, 10000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const loadBuses = async () => {
     try {
-      const response = await busAPI.getAll()
-      const buses = response.data || []
+      const response = await busAPI.getAll();
+      const buses = response.data || [];
 
       // Filter active buses
-      const activeBuses = buses.filter((bus: any) => bus.status === 'active')
-      setNearbyBuses(activeBuses)
-      setIsLoading(false)
+      const activeBuses = buses.filter((bus: any) => bus.status === 'active');
+      setNearbyBuses(activeBuses);
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error loading buses:', error)
+      console.error('Error loading buses:', error);
       // Don't show error on initial load or refreshes
       if (nearbyBuses.length > 0) {
-        toast.error('Failed to refresh bus data')
+        toast.error('Failed to refresh bus data');
       }
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const calculateETA = () => {
-    return Math.floor(Math.random() * 10) + 3
-  }
+    return Math.floor(Math.random() * 10) + 3;
+  };
 
   // If a bus is selected, show the bus info page
   if (selectedBusId) {
-    return <BusInfoPublic busId={selectedBusId} onClose={() => setSelectedBusId(null)} />
+    return <BusInfoPublic busId={selectedBusId} onClose={() => setSelectedBusId(null)} />;
   }
 
   const routeStops = [
@@ -58,7 +58,7 @@ export function PassengerPortal() {
     'Zapote Junction',
     'Alabang Town Center',
     'Alabang Terminal',
-  ]
+  ];
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 lg:p-8">
@@ -153,9 +153,9 @@ export function PassengerPortal() {
 
           <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
             {nearbyBuses.map((bus, index) => {
-              const eta = calculateETA()
-              const isAlmostFull = bus.currentPassengers / bus.maxCapacity >= 0.8
-              const hasSeats = bus.currentPassengers / bus.maxCapacity < 0.5
+              const eta = calculateETA();
+              const isAlmostFull = bus.currentPassengers / bus.maxCapacity >= 0.8;
+              const hasSeats = bus.currentPassengers / bus.maxCapacity < 0.5;
 
               return (
                 <motion.div
@@ -241,7 +241,7 @@ export function PassengerPortal() {
                     )}
                   </div>
                 </motion.div>
-              )
+              );
             })}
           </div>
         </motion.div>
@@ -337,5 +337,5 @@ export function PassengerPortal() {
         </div>
       </div>
     </div>
-  )
+  );
 }

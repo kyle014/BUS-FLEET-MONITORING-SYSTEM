@@ -1,18 +1,18 @@
-import { Calendar, CheckCircle, MapPin, Package, Phone, Plus, Search, Trash2, User, XCircle } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { LostAndFoundItem } from '../types'
-import { lostItemAPI } from '../utils/api'
+import { Calendar, CheckCircle, MapPin, Package, Phone, Plus, Search, Trash2, User, XCircle } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { LostAndFoundItem } from '../types';
+import { lostItemAPI } from '../utils/api';
 
 export function LostAndFound() {
-  const [items, setItems] = useState<LostAndFoundItem[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState<'all' | 'unclaimed' | 'claimed' | 'disposed'>('all')
-  const [filterCategory, setFilterCategory] = useState<'all' | LostAndFoundItem['category']>('all')
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [editingItem, setEditingItem] = useState<LostAndFoundItem | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [items, setItems] = useState<LostAndFoundItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'unclaimed' | 'claimed' | 'disposed'>('all');
+  const [filterCategory, setFilterCategory] = useState<'all' | LostAndFoundItem['category']>('all');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<LostAndFoundItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // New item form state
   const [newItem, setNewItem] = useState({
@@ -24,105 +24,105 @@ export function LostAndFound() {
     foundBy: '',
     location: '',
     contactInfo: '',
-  })
+  });
 
   useEffect(() => {
-    loadItems()
-  }, [])
+    loadItems();
+  }, []);
 
   const loadItems = async () => {
     try {
-      const response = await lostItemAPI.getAll()
-      const itemsData = response.data || []
+      const response = await lostItemAPI.getAll();
+      const itemsData = response.data || [];
 
       // Convert date strings to Date objects
       const formattedItems = itemsData.map((item: any) => ({
         ...item,
         dateFound: new Date(item.dateFound),
         claimedDate: item.claimedDate ? new Date(item.claimedDate) : undefined,
-      }))
+      }));
 
-      setItems(formattedItems)
-      setIsLoading(false)
+      setItems(formattedItems);
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error loading lost items:', error)
+      console.error('Error loading lost items:', error);
       // Don't show error on initial load
       if (items.length > 0) {
-        toast.error('Failed to refresh lost items')
+        toast.error('Failed to refresh lost items');
       }
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const filteredItems = items.filter((item) => {
     const matchesSearch =
       item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = filterStatus === 'all' || item.status === filterStatus
-    const matchesCategory = filterCategory === 'all' || item.category === filterCategory
-    return matchesSearch && matchesStatus && matchesCategory
-  })
+      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
+    const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
 
   const handleAddItem = async () => {
     if (!newItem.itemName || !newItem.description || !newItem.busPlateNumber) {
-      toast.error('Please fill in all required fields')
-      return
+      toast.error('Please fill in all required fields');
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const itemId = `lf_${Date.now()}`
+      const itemId = `lf_${Date.now()}`;
       await lostItemAPI.create({
         id: itemId,
         ...newItem,
-      })
+      });
 
-      await loadItems() // Reload items from database
-      setShowAddModal(false)
-      resetForm()
-      toast.success('Lost item added successfully!')
+      await loadItems(); // Reload items from database
+      setShowAddModal(false);
+      resetForm();
+      toast.success('Lost item added successfully!');
     } catch (error) {
-      console.error('Error adding lost item:', error)
-      toast.error('Failed to add lost item. Please try again.')
+      console.error('Error adding lost item:', error);
+      toast.error('Failed to add lost item. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleUpdateStatus = async (id: string, status: LostAndFoundItem['status']) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const updateData: any = { status }
+      const updateData: any = { status };
       if (status === 'claimed') {
-        updateData.claimedDate = new Date().toISOString()
+        updateData.claimedDate = new Date().toISOString();
       }
 
-      await lostItemAPI.update(id, updateData)
-      await loadItems() // Reload items from database
-      toast.success(`Item marked as ${status}!`)
+      await lostItemAPI.update(id, updateData);
+      await loadItems(); // Reload items from database
+      toast.success(`Item marked as ${status}!`);
     } catch (error) {
-      console.error('Error updating item status:', error)
-      toast.error('Failed to update item status.')
+      console.error('Error updating item status:', error);
+      toast.error('Failed to update item status.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDeleteItem = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) return
+    if (!confirm('Are you sure you want to delete this item?')) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await lostItemAPI.delete(id)
-      await loadItems() // Reload items from database
-      toast.success('Item deleted successfully!')
+      await lostItemAPI.delete(id);
+      await loadItems(); // Reload items from database
+      toast.success('Item deleted successfully!');
     } catch (error) {
-      console.error('Error deleting item:', error)
-      toast.error('Failed to delete item.')
+      console.error('Error deleting item:', error);
+      toast.error('Failed to delete item.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const resetForm = () => {
     setNewItem({
@@ -134,8 +134,8 @@ export function LostAndFound() {
       foundBy: '',
       location: '',
       contactInfo: '',
-    })
-  }
+    });
+  };
 
   const getCategoryIcon = (category: LostAndFoundItem['category']) => {
     const icons = {
@@ -145,18 +145,18 @@ export function LostAndFound() {
       documents: '📄',
       accessories: '👜',
       other: '📦',
-    }
-    return icons[category]
-  }
+    };
+    return icons[category];
+  };
 
   const getStatusColor = (status: LostAndFoundItem['status']) => {
     const colors = {
       unclaimed: 'bg-yellow-100 text-yellow-700 border-yellow-200',
       claimed: 'bg-green-100 text-green-700 border-green-200',
       disposed: 'bg-gray-100 text-gray-700 border-gray-200',
-    }
-    return colors[status]
-  }
+    };
+    return colors[status];
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-8">
@@ -520,8 +520,8 @@ export function LostAndFound() {
                     <div className="flex gap-3 pt-4">
                       <button
                         onClick={() => {
-                          setShowAddModal(false)
-                          resetForm()
+                          setShowAddModal(false);
+                          resetForm();
                         }}
                         className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                       >
@@ -543,5 +543,5 @@ export function LostAndFound() {
         </AnimatePresence>
       </div>
     </div>
-  )
+  );
 }

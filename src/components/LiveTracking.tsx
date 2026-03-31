@@ -1,46 +1,46 @@
-import { Bus, Clock, Loader2, MapPin, Maximize2, Navigation, Radio, Users } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router'
-import { toast } from 'sonner'
-import { Bus as BusType } from '../types'
-import { busAPI } from '../utils/api'
-import { MapView } from './MapView'
+import { Bus, Clock, Loader2, MapPin, Maximize2, Navigation, Radio, Users } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router';
+import { toast } from 'sonner';
+import { Bus as BusType } from '../types';
+import { busAPI } from '../utils/api';
+import { MapView } from './MapView';
 
 export function LiveTracking() {
-  const { busId } = useParams()
-  const [buses, setBuses] = useState<BusType[]>([])
-  const [selectedBus, setSelectedBus] = useState<BusType | null>(null)
-  const [mapZoom, setMapZoom] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const busItemRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+  const { busId } = useParams();
+  const [buses, setBuses] = useState<BusType[]>([]);
+  const [selectedBus, setSelectedBus] = useState<BusType | null>(null);
+  const [mapZoom, setMapZoom] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const busItemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
-    loadBuses()
+    loadBuses();
 
     const interval = setInterval(() => {
-      loadBuses()
-    }, 5000)
+      loadBuses();
+    }, 5000);
 
-    return () => clearInterval(interval)
-  }, [busId])
+    return () => clearInterval(interval);
+  }, [busId]);
 
   useEffect(() => {
-    if (!selectedBus || mapZoom) return
+    if (!selectedBus || mapZoom) return;
 
-    const element = busItemRefs.current[selectedBus.id]
-    if (!element) return
+    const element = busItemRefs.current[selectedBus.id];
+    if (!element) return;
 
     element.scrollIntoView({
       behavior: 'smooth',
       block: 'nearest',
-    })
-  }, [selectedBus, mapZoom])
+    });
+  }, [selectedBus, mapZoom]);
 
   const loadBuses = async () => {
     try {
-      const response = await busAPI.getAll()
-      const busesData: BusType[] = response.data || []
+      const response = await busAPI.getAll();
+      const busesData: BusType[] = response.data || [];
 
       const formattedBuses: BusType[] = busesData.map((bus: BusType) => ({
         ...bus,
@@ -48,40 +48,40 @@ export function LiveTracking() {
           ...bus.location,
           lastUpdated: bus.location?.lastUpdated ? new Date(bus.location.lastUpdated) : new Date(),
         },
-      }))
+      }));
 
-      setBuses(formattedBuses)
+      setBuses(formattedBuses);
 
       setSelectedBus((prev) => {
-        if (!formattedBuses.length) return null
+        if (!formattedBuses.length) return null;
 
         if (busId) {
-          const routeBus = formattedBuses.find((bus: BusType) => bus.id === busId)
-          return routeBus ?? formattedBuses[0]
+          const routeBus = formattedBuses.find((bus: BusType) => bus.id === busId);
+          return routeBus ?? formattedBuses[0];
         }
 
         if (prev) {
-          const updated = formattedBuses.find((bus: BusType) => bus.id === prev.id)
-          if (updated) return updated
+          const updated = formattedBuses.find((bus: BusType) => bus.id === prev.id);
+          if (updated) return updated;
         }
 
-        return formattedBuses[0]
-      })
+        return formattedBuses[0];
+      });
 
-      setIsLoading(false)
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error loading buses:', error)
+      console.error('Error loading buses:', error);
 
       if (buses.length > 0) {
-        toast.error('Failed to refresh bus data')
+        toast.error('Failed to refresh bus data');
       }
 
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const activeBuses = buses.filter((bus) => bus.status === 'active').length
-  const totalPassengers = buses.reduce((sum, bus) => sum + bus.currentPassengers, 0)
+  const activeBuses = buses.filter((bus) => bus.status === 'active').length;
+  const totalPassengers = buses.reduce((sum, bus) => sum + bus.currentPassengers, 0);
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8">
@@ -214,14 +214,14 @@ export function LiveTracking() {
 
                   <div className="p-4 space-y-3 max-h-[500px] overflow-y-auto">
                     {buses.map((bus) => {
-                      const maxCapacity = bus.maxCapacity || 1
-                      const loadRatio = bus.currentPassengers / maxCapacity
+                      const maxCapacity = bus.maxCapacity || 1;
+                      const loadRatio = bus.currentPassengers / maxCapacity;
 
                       return (
                         <button
                           key={bus.id}
                           ref={(el) => {
-                            busItemRefs.current[bus.id] = el
+                            busItemRefs.current[bus.id] = el;
                           }}
                           onClick={() => setSelectedBus(bus)}
                           className={`cursor-pointer w-full text-left p-4 rounded-xl border-2 transition-all ${
@@ -288,7 +288,7 @@ export function LiveTracking() {
                             )}
                           </div>
                         </button>
-                      )
+                      );
                     })}
                   </div>
                 </motion.div>
@@ -406,5 +406,5 @@ export function LiveTracking() {
         )}
       </div>
     </div>
-  )
+  );
 }

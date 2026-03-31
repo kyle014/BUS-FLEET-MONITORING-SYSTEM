@@ -1,62 +1,62 @@
-import { Calendar, MapPin, Package, Phone, Search, User } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { LostAndFoundItem } from '../types'
-import { lostItemAPI } from '../utils/api'
+import { Calendar, MapPin, Package, Phone, Search, User } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { LostAndFoundItem } from '../types';
+import { lostItemAPI } from '../utils/api';
 
 export function LostAndFoundView() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterCategory, setFilterCategory] = useState<'all' | LostAndFoundItem['category']>('all')
-  const [selectedItem, setSelectedItem] = useState<LostAndFoundItem | null>(null)
-  const [items, setItems] = useState<LostAndFoundItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState<'all' | LostAndFoundItem['category']>('all');
+  const [selectedItem, setSelectedItem] = useState<LostAndFoundItem | null>(null);
+  const [items, setItems] = useState<LostAndFoundItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadItems()
+    loadItems();
 
     // Refresh every 30 seconds
     const interval = setInterval(() => {
-      loadItems()
-    }, 30000)
+      loadItems();
+    }, 30000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const loadItems = async () => {
     try {
-      const response = await lostItemAPI.getAll()
-      const itemsData = response.data || []
+      const response = await lostItemAPI.getAll();
+      const itemsData = response.data || [];
 
       // Convert date strings to Date objects
       const formattedItems = itemsData.map((item: any) => ({
         ...item,
         dateFound: new Date(item.dateFound),
         claimedDate: item.claimedDate ? new Date(item.claimedDate) : undefined,
-      }))
+      }));
 
-      setItems(formattedItems)
-      setIsLoading(false)
+      setItems(formattedItems);
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error loading lost items:', error)
+      console.error('Error loading lost items:', error);
       // Don't show error on initial load
       if (items.length > 0) {
-        toast.error('Failed to refresh lost items')
+        toast.error('Failed to refresh lost items');
       }
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Only show unclaimed items to passengers
-  const unclaimedItems = items.filter((item) => item.status === 'unclaimed')
+  const unclaimedItems = items.filter((item) => item.status === 'unclaimed');
 
   const filteredItems = unclaimedItems.filter((item) => {
     const matchesSearch =
       item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = filterCategory === 'all' || item.category === filterCategory
-    return matchesSearch && matchesCategory
-  })
+      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const getCategoryIcon = (category: LostAndFoundItem['category']) => {
     const icons = {
@@ -66,16 +66,16 @@ export function LostAndFoundView() {
       documents: '📄',
       accessories: '👜',
       other: '📦',
-    }
-    return icons[category]
-  }
+    };
+    return icons[category];
+  };
 
   const getDaysAgo = (date: Date) => {
-    const days = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
-    if (days === 0) return 'Today'
-    if (days === 1) return 'Yesterday'
-    return `${days} days ago`
-  }
+    const days = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    return `${days} days ago`;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-8">
@@ -316,5 +316,5 @@ export function LostAndFoundView() {
         </AnimatePresence>
       </div>
     </div>
-  )
+  );
 }

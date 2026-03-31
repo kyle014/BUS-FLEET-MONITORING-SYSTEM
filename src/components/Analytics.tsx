@@ -1,133 +1,133 @@
-import { ArrowDownRight, ArrowUpRight, Bus, Calendar, Clock, DollarSign, TrendingUp, Users } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { busAPI, tripAPI } from '../utils/api'
+import { ArrowDownRight, ArrowUpRight, Bus, Calendar, Clock, DollarSign, TrendingUp, Users } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { busAPI, tripAPI } from '../utils/api';
 
 interface Trip {
-  id: string
-  busId: string
-  busPlateNumber: string
-  driver: string
-  route: string
-  status: 'ongoing' | 'completed'
-  startTime: string
-  endTime?: string
-  passengers: any[]
-  totalFare: number
-  passengersBoarded: number
+  id: string;
+  busId: string;
+  busPlateNumber: string;
+  driver: string;
+  route: string;
+  status: 'ongoing' | 'completed';
+  startTime: string;
+  endTime?: string;
+  passengers: any[];
+  totalFare: number;
+  passengersBoarded: number;
 }
 
 export function Analytics() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [allTrips, setAllTrips] = useState<Trip[]>([])
-  const [buses, setBuses] = useState<any[]>([])
-  const [selectedRange, setSelectedRange] = useState('7 Days')
+  const [isLoading, setIsLoading] = useState(true);
+  const [allTrips, setAllTrips] = useState<Trip[]>([]);
+  const [buses, setBuses] = useState<any[]>([]);
+  const [selectedRange, setSelectedRange] = useState('7 Days');
 
-  const timeRanges = ['Today', '7 Days', '30 Days', 'Year']
+  const timeRanges = ['Today', '7 Days', '30 Days', 'Year'];
 
   useEffect(() => {
-    loadAnalyticsData()
+    loadAnalyticsData();
 
     // Refresh every 30 seconds
-    const interval = setInterval(loadAnalyticsData, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    const interval = setInterval(loadAnalyticsData, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadAnalyticsData = async () => {
     try {
-      const [tripsResponse, busesResponse] = await Promise.all([tripAPI.getAll(), busAPI.getAll()])
+      const [tripsResponse, busesResponse] = await Promise.all([tripAPI.getAll(), busAPI.getAll()]);
 
-      setAllTrips(tripsResponse.data || [])
-      setBuses(busesResponse.data || [])
-      setIsLoading(false)
+      setAllTrips(tripsResponse.data || []);
+      setBuses(busesResponse.data || []);
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error loading analytics data:', error)
+      console.error('Error loading analytics data:', error);
       if (allTrips.length === 0) {
         // Only show error if we don't have any cached data
-        toast.error('Failed to load analytics data')
+        toast.error('Failed to load analytics data');
       }
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Calculate metrics from real data
   const calculateMetrics = () => {
-    const completedTrips = allTrips.filter((trip) => trip.status === 'completed')
-    const ongoingTrips = allTrips.filter((trip) => trip.status === 'ongoing')
+    const completedTrips = allTrips.filter((trip) => trip.status === 'completed');
+    const ongoingTrips = allTrips.filter((trip) => trip.status === 'ongoing');
 
     // Total trips
-    const totalTrips = completedTrips.length
+    const totalTrips = completedTrips.length;
 
     // Total passengers and revenue from trip data (more efficient)
-    let totalPassengers = 0
-    let totalRevenue = 0
+    let totalPassengers = 0;
+    let totalRevenue = 0;
 
     allTrips.forEach((trip) => {
       // Use the totalFare and passengersBoarded fields that are already tracked
-      totalRevenue += trip.totalFare || 0
-      totalPassengers += trip.passengersBoarded || 0
-    })
+      totalRevenue += trip.totalFare || 0;
+      totalPassengers += trip.passengersBoarded || 0;
+    });
 
     // Calculate average trip duration for completed trips
-    let totalDuration = 0
-    let tripCount = 0
+    let totalDuration = 0;
+    let tripCount = 0;
 
     completedTrips.forEach((trip) => {
       if (trip.startTime && trip.endTime) {
-        const start = new Date(trip.startTime).getTime()
-        const end = new Date(trip.endTime).getTime()
-        const duration = (end - start) / (1000 * 60) // minutes
+        const start = new Date(trip.startTime).getTime();
+        const end = new Date(trip.endTime).getTime();
+        const duration = (end - start) / (1000 * 60); // minutes
         if (duration > 0 && duration < 300) {
           // Filter out invalid durations
-          totalDuration += duration
-          tripCount++
+          totalDuration += duration;
+          tripCount++;
         }
       }
-    })
+    });
 
-    const avgDuration = tripCount > 0 ? Math.round(totalDuration / tripCount) : 0
+    const avgDuration = tripCount > 0 ? Math.round(totalDuration / tripCount) : 0;
 
     return {
       totalRevenue,
       totalTrips: totalTrips + ongoingTrips.length,
       totalPassengers,
       avgDuration,
-    }
-  }
+    };
+  };
 
   // Calculate trip volume by hour
   const calculateTripVolume = () => {
-    const hourlyData: { [key: string]: { trips: number; passengers: number } } = {}
+    const hourlyData: { [key: string]: { trips: number; passengers: number } } = {};
 
     // Initialize all hours
     for (let i = 6; i <= 19; i++) {
-      const hour = i <= 11 ? `${i} AM` : i === 12 ? '12 PM' : `${i - 12} PM`
-      hourlyData[hour] = { trips: 0, passengers: 0 }
+      const hour = i <= 11 ? `${i} AM` : i === 12 ? '12 PM' : `${i - 12} PM`;
+      hourlyData[hour] = { trips: 0, passengers: 0 };
     }
 
     // Aggregate data
     allTrips.forEach((trip) => {
-      const startTime = new Date(trip.startTime)
-      const hour = startTime.getHours()
-      const hourLabel = hour <= 11 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`
+      const startTime = new Date(trip.startTime);
+      const hour = startTime.getHours();
+      const hourLabel = hour <= 11 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`;
 
       if (hourlyData[hourLabel]) {
-        hourlyData[hourLabel].trips++
-        hourlyData[hourLabel].passengers += (trip.passengers || []).length
+        hourlyData[hourLabel].trips++;
+        hourlyData[hourLabel].passengers += (trip.passengers || []).length;
       }
-    })
+    });
 
     return Object.entries(hourlyData).map(([hour, data]) => ({
       hour,
       trips: data.trips,
       passengers: data.passengers,
-    }))
-  }
+    }));
+  };
 
   // Calculate bus performance
   const calculateBusPerformance = () => {
-    const busStats: { [key: string]: any } = {}
+    const busStats: { [key: string]: any } = {};
 
     allTrips.forEach((trip) => {
       if (!busStats[trip.busId]) {
@@ -136,47 +136,47 @@ export function Analytics() {
           trips: 0,
           passengers: 0,
           revenue: 0,
-        }
+        };
       }
 
-      busStats[trip.busId].trips++
+      busStats[trip.busId].trips++;
       // Use the tracked totalFare and passengersBoarded from the trip
-      busStats[trip.busId].passengers += trip.passengersBoarded || 0
-      busStats[trip.busId].revenue += trip.totalFare || 0
-    })
+      busStats[trip.busId].passengers += trip.passengersBoarded || 0;
+      busStats[trip.busId].revenue += trip.totalFare || 0;
+    });
 
     // Calculate efficiency (avg passengers per trip vs capacity)
     const busPerformance = Object.values(busStats).map((stat: any) => {
-      const bus = buses.find((b) => b.id === stat.busId || b.plateNumber === stat.plate)
-      const capacity = bus?.maxCapacity || 18
-      const avgPassengers = stat.trips > 0 ? stat.passengers / stat.trips : 0
-      const efficiency = Math.round((avgPassengers / capacity) * 100)
+      const bus = buses.find((b) => b.id === stat.busId || b.plateNumber === stat.plate);
+      const capacity = bus?.maxCapacity || 18;
+      const avgPassengers = stat.trips > 0 ? stat.passengers / stat.trips : 0;
+      const efficiency = Math.round((avgPassengers / capacity) * 100);
 
       return {
         ...stat,
         efficiency: Math.min(efficiency, 100),
-      }
-    })
+      };
+    });
 
     // Sort by trips and return top 4
-    return busPerformance.sort((a, b) => b.trips - a.trips).slice(0, 4)
-  }
+    return busPerformance.sort((a, b) => b.trips - a.trips).slice(0, 4);
+  };
 
   // Calculate revenue by route
   const calculateRevenueByRoute = () => {
-    const routeStats: { [key: string]: { trips: number; revenue: number } } = {}
+    const routeStats: { [key: string]: { trips: number; revenue: number } } = {};
 
     allTrips.forEach((trip) => {
       if (!routeStats[trip.route]) {
-        routeStats[trip.route] = { trips: 0, revenue: 0 }
+        routeStats[trip.route] = { trips: 0, revenue: 0 };
       }
 
-      routeStats[trip.route].trips++
+      routeStats[trip.route].trips++;
       // Use the totalFare that's already tracked in the trip
-      routeStats[trip.route].revenue += trip.totalFare || 0
-    })
+      routeStats[trip.route].revenue += trip.totalFare || 0;
+    });
 
-    const totalRevenue = Object.values(routeStats).reduce((sum, stat) => sum + stat.revenue, 0)
+    const totalRevenue = Object.values(routeStats).reduce((sum, stat) => sum + stat.revenue, 0);
 
     return Object.entries(routeStats)
       .map(([route, stats]) => ({
@@ -185,8 +185,8 @@ export function Analytics() {
         revenue: stats.revenue,
         percentage: totalRevenue > 0 ? Math.round((stats.revenue / totalRevenue) * 100) : 0,
       }))
-      .sort((a, b) => b.revenue - a.revenue)
-  }
+      .sort((a, b) => b.revenue - a.revenue);
+  };
 
   if (isLoading) {
     return (
@@ -196,16 +196,16 @@ export function Analytics() {
           <p className="text-gray-600">Loading analytics...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  const metrics = calculateMetrics()
-  const tripVolumeData = calculateTripVolume()
-  const busPerformance = calculateBusPerformance()
-  const revenueByRoute = calculateRevenueByRoute()
+  const metrics = calculateMetrics();
+  const tripVolumeData = calculateTripVolume();
+  const busPerformance = calculateBusPerformance();
+  const revenueByRoute = calculateRevenueByRoute();
 
-  const maxTrips = Math.max(...tripVolumeData.map((d) => d.trips), 1)
-  const maxPassengers = Math.max(...tripVolumeData.map((d) => d.passengers), 1)
+  const maxTrips = Math.max(...tripVolumeData.map((d) => d.trips), 1);
+  const maxPassengers = Math.max(...tripVolumeData.map((d) => d.passengers), 1);
 
   const metricsDisplay = [
     {
@@ -240,7 +240,7 @@ export function Analytics() {
       icon: Clock,
       color: 'from-orange-500 to-red-600',
     },
-  ]
+  ];
 
   // Calculate insights
   const peakHours = tripVolumeData
@@ -248,14 +248,14 @@ export function Analytics() {
     .sort((a, b) => b.trips - a.trips)
     .slice(0, 2)
     .map((d) => d.hour)
-    .join(' & ')
+    .join(' & ');
 
-  const avgPassengersPerTrip = metrics.totalTrips > 0 ? (metrics.totalPassengers / metrics.totalTrips).toFixed(1) : '0'
+  const avgPassengersPerTrip = metrics.totalTrips > 0 ? (metrics.totalPassengers / metrics.totalTrips).toFixed(1) : '0';
 
-  const avgCapacity = buses.length > 0 ? buses.reduce((sum, b) => sum + (b.maxCapacity || 0), 0) / buses.length : 18
+  const avgCapacity = buses.length > 0 ? buses.reduce((sum, b) => sum + (b.maxCapacity || 0), 0) / buses.length : 18;
 
   const capacityUtilization =
-    avgCapacity > 0 ? ((parseFloat(avgPassengersPerTrip) / avgCapacity) * 100).toFixed(1) : '0'
+    avgCapacity > 0 ? ((parseFloat(avgPassengersPerTrip) / avgCapacity) * 100).toFixed(1) : '0';
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8">
@@ -290,8 +290,8 @@ export function Analytics() {
         {/* Key Metrics */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {metricsDisplay.map((metric, index) => {
-            const Icon = metric.icon
-            const TrendIcon = metric.trend === 'up' ? ArrowUpRight : ArrowDownRight
+            const Icon = metric.icon;
+            const TrendIcon = metric.trend === 'up' ? ArrowUpRight : ArrowDownRight;
 
             return (
               <motion.div
@@ -323,7 +323,7 @@ export function Analytics() {
                   <div className="text-sm opacity-90">{metric.label}</div>
                 </div>
               </motion.div>
-            )
+            );
           })}
         </div>
 
@@ -584,5 +584,5 @@ export function Analytics() {
         </div>
       </div>
     </div>
-  )
+  );
 }

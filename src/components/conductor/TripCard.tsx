@@ -1,17 +1,17 @@
-import { AlertTriangle, Bus, Clock, Loader2, MapPin, Navigation, Users } from 'lucide-react'
-import { motion } from 'motion/react'
-import { BusInfo, Location } from '../../types/conductor'
+import { AlertTriangle, Bus, Clock, Loader2, MapPin, Navigation, Users } from 'lucide-react';
+import { motion } from 'motion/react';
+import { BusInfo, Location } from '../../types/conductor';
 
 interface TripCardProps {
-  busInfo: BusInfo
-  isActive: boolean
-  passengerCount: number
-  isLoading: boolean
-  gpsGranted: boolean
-  currentLocation: Location | null
-  onStartTrip: () => void
-  onEndTrip: () => void
-  onEnableGPS: () => void
+  busInfo: BusInfo;
+  isActive: boolean;
+  passengerCount: number;
+  isLoading: boolean;
+  gpsGranted: boolean;
+  currentLocation: Location | null;
+  onStartTrip: () => void;
+  onEndTrip: () => void;
+  onEnableGPS: () => void;
 }
 
 export function TripCard({
@@ -99,5 +99,5 @@ export function TripCard({
         </button>
       </div>
     </motion.div>
-  )
+  );
 }

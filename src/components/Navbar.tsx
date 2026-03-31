@@ -1,32 +1,32 @@
-import { BarChart3, Bus, FileText, Map, Menu, Package, Ticket, User, X } from 'lucide-react'
-import { useState } from 'react'
-import { useLocation } from 'react-router'
+import { BarChart3, Bus, FileText, Map, Menu, Package, Ticket, User, X } from 'lucide-react';
+import { useState } from 'react';
+import { useLocation } from 'react-router';
 
 interface NavbarProps {
-  onNavigate: (page: any) => void
-  userRole: 'admin' | 'conductor' | 'passenger'
+  onNavigate: (page: any) => void;
+  userRole: 'admin' | 'conductor' | 'passenger';
 }
 
 export function Navbar({ onNavigate, userRole }: NavbarProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   // Determine active page from current route
   const getCurrentPage = () => {
-    const path = location.pathname
+    const path = location.pathname;
 
-    if (path.includes('/fleet')) return 'fleet'
-    if (path.includes('/analytics')) return 'analytics'
-    if (path.includes('/reports')) return 'reports'
-    if (path.includes('/lostandfound')) return 'lostandfound'
-    if (path.includes('/conductor')) return 'conductor'
-    if (path.includes('/passenger')) return 'passenger'
-    if (path.includes('/tracking')) return 'tracking'
+    if (path.includes('/fleet')) return 'fleet';
+    if (path.includes('/analytics')) return 'analytics';
+    if (path.includes('/reports')) return 'reports';
+    if (path.includes('/lostandfound')) return 'lostandfound';
+    if (path.includes('/conductor')) return 'conductor';
+    if (path.includes('/passenger')) return 'passenger';
+    if (path.includes('/tracking')) return 'tracking';
 
-    return 'tracking'
-  }
+    return 'tracking';
+  };
 
-  const activePage = getCurrentPage()
+  const activePage = getCurrentPage();
 
   const navItems =
     userRole === 'admin'
@@ -42,7 +42,7 @@ export function Navbar({ onNavigate, userRole }: NavbarProps) {
         : [
             { id: 'passenger', label: 'Track Buses', icon: Map },
             { id: 'lostandfound', label: 'Lost & Found', icon: Package },
-          ]
+          ];
 
   return (
     <>
@@ -63,7 +63,7 @@ export function Navbar({ onNavigate, userRole }: NavbarProps) {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-2">
               {navItems.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon;
                 return (
                   <button
                     key={item.id}
@@ -77,7 +77,7 @@ export function Navbar({ onNavigate, userRole }: NavbarProps) {
                     <Icon className="w-4 h-4" />
                     <span className="text-sm">{item.label}</span>
                   </button>
-                )
+                );
               })}
             </div>
 
@@ -109,13 +109,13 @@ export function Navbar({ onNavigate, userRole }: NavbarProps) {
           <div className="md:hidden border-t border-gray-200 bg-white">
             <div className="px-4 py-3 space-y-1">
               {navItems.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon;
                 return (
                   <button
                     key={item.id}
                     onClick={() => {
-                      onNavigate(item.id)
-                      setMobileMenuOpen(false)
+                      onNavigate(item.id);
+                      setMobileMenuOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                       activePage === item.id
@@ -126,12 +126,12 @@ export function Navbar({ onNavigate, userRole }: NavbarProps) {
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
                   </button>
-                )
+                );
               })}
             </div>
           </div>
         )}
       </nav>
     </>
-  )
+  );
 }

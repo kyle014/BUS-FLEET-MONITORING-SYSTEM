@@ -1,168 +1,168 @@
-import { Check, Copy, Download, Loader2, QrCode, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { toast } from 'sonner'
+import { Check, Copy, Download, Loader2, QrCode, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
 
 interface BusQRCodeProps {
-  busId: string
-  plateNumber: string
-  qrCodeId: string
+  busId: string;
+  plateNumber: string;
+  qrCodeId: string;
 }
 
 export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const [isQrLoading, setIsQrLoading] = useState(false)
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [isCopying, setIsCopying] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isQrLoading, setIsQrLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
 
-    const originalOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
     return () => {
-      document.body.style.overflow = originalOverflow
-    }
-  }, [isOpen])
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
 
   const qrCodeUrl = useMemo(() => {
-    if (typeof window === 'undefined') return ''
+    if (typeof window === 'undefined') return '';
 
     return `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(
       `${window.location.origin}/bus/track/${busId}`,
-    )}`
-  }, [busId])
+    )}`;
+  }, [busId]);
 
   useEffect(() => {
     if (isOpen) {
-      setIsQrLoading(true)
-      setCopied(false)
+      setIsQrLoading(true);
+      setCopied(false);
     }
-  }, [isOpen, qrCodeUrl])
+  }, [isOpen, qrCodeUrl]);
 
   const openModal = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsOpen(true)
-  }, [])
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen(true);
+  }, []);
 
   const closeModal = useCallback(() => {
-    setIsOpen(false)
-    setIsQrLoading(false)
-    setIsDownloading(false)
-    setIsCopying(false)
-    setCopied(false)
-  }, [])
+    setIsOpen(false);
+    setIsQrLoading(false);
+    setIsDownloading(false);
+    setIsCopying(false);
+    setCopied(false);
+  }, []);
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      e.stopPropagation()
+      e.stopPropagation();
       if (e.target === e.currentTarget) {
-        closeModal()
+        closeModal();
       }
     },
     [closeModal],
-  )
+  );
 
   const handleCloseClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault()
-      e.stopPropagation()
-      closeModal()
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
     },
     [closeModal],
-  )
+  );
 
   const handleContentClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation()
-  }, [])
+    e.stopPropagation();
+  }, []);
 
   const getQrBlob = useCallback(async () => {
-    const response = await fetch(qrCodeUrl, { mode: 'cors' })
+    const response = await fetch(qrCodeUrl, { mode: 'cors' });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch QR code image')
+      throw new Error('Failed to fetch QR code image');
     }
 
-    return await response.blob()
-  }, [qrCodeUrl])
+    return await response.blob();
+  }, [qrCodeUrl]);
 
   const handleDownload = useCallback(
     async (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault()
-      e.stopPropagation()
+      e.preventDefault();
+      e.stopPropagation();
 
-      if (!qrCodeUrl || isQrLoading || isDownloading) return
+      if (!qrCodeUrl || isQrLoading || isDownloading) return;
 
       try {
-        setIsDownloading(true)
+        setIsDownloading(true);
 
-        const blob = await getQrBlob()
-        const objectUrl = URL.createObjectURL(blob)
+        const blob = await getQrBlob();
+        const objectUrl = URL.createObjectURL(blob);
 
-        const link = document.createElement('a')
-        link.href = objectUrl
-        link.download = `bus-${plateNumber.replace(/\s+/g, '-').toLowerCase()}-qr.png`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = `bus-${plateNumber.replace(/\s+/g, '-').toLowerCase()}-qr.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
-        URL.revokeObjectURL(objectUrl)
-        toast.success('QR code downloaded')
+        URL.revokeObjectURL(objectUrl);
+        toast.success('QR code downloaded');
       } catch (error) {
-        console.error('Error downloading QR code:', error)
-        toast.error('Failed to download QR code')
+        console.error('Error downloading QR code:', error);
+        toast.error('Failed to download QR code');
       } finally {
-        setIsDownloading(false)
+        setIsDownloading(false);
       }
     },
     [getQrBlob, isDownloading, isQrLoading, plateNumber, qrCodeUrl],
-  )
+  );
 
   const handleCopyImage = useCallback(
     async (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault()
-      e.stopPropagation()
+      e.preventDefault();
+      e.stopPropagation();
 
-      if (!qrCodeUrl || isQrLoading || isCopying) return
+      if (!qrCodeUrl || isQrLoading || isCopying) return;
 
       try {
-        setIsCopying(true)
+        setIsCopying(true);
 
         if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
-          throw new Error('Clipboard image copy is not supported in this browser')
+          throw new Error('Clipboard image copy is not supported in this browser');
         }
 
-        const blob = await getQrBlob()
+        const blob = await getQrBlob();
         const clipboardItem = new ClipboardItem({
           [blob.type || 'image/png']: blob,
-        })
+        });
 
-        await navigator.clipboard.write([clipboardItem])
+        await navigator.clipboard.write([clipboardItem]);
 
-        setCopied(true)
-        toast.success('QR code copied as image')
+        setCopied(true);
+        toast.success('QR code copied as image');
 
         window.setTimeout(() => {
-          setCopied(false)
-        }, 2000)
+          setCopied(false);
+        }, 2000);
       } catch (error) {
-        console.error('Error copying QR image:', error)
-        toast.error('Copy image is not supported on this device/browser')
+        console.error('Error copying QR image:', error);
+        toast.error('Copy image is not supported on this device/browser');
       } finally {
-        setIsCopying(false)
+        setIsCopying(false);
       }
     },
     [getQrBlob, isCopying, isQrLoading, qrCodeUrl],
-  )
+  );
 
   const modal = (
     <AnimatePresence>
@@ -221,8 +221,8 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
                         draggable={false}
                         onLoad={() => setIsQrLoading(false)}
                         onError={() => {
-                          setIsQrLoading(false)
-                          toast.error('Failed to load QR code')
+                          setIsQrLoading(false);
+                          toast.error('Failed to load QR code');
                         }}
                       />
                     </div>
@@ -312,7 +312,7 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
         </div>
       )}
     </AnimatePresence>
-  )
+  );
 
   return (
     <>
@@ -327,5 +327,5 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
 
       {mounted ? createPortal(modal, document.body) : null}
     </>
-  )
+  );
 }

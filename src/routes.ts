@@ -1,17 +1,17 @@
-import { createBrowserRouter } from 'react-router'
-import { Analytics } from './components/Analytics'
-import { BusInfoPublicPage } from './components/BusInfoPublicPage'
-import { FleetManagement } from './components/FleetManagement'
-import { LiveTracking } from './components/LiveTracking'
-import { LostAndFound } from './components/LostAndFound'
-import { LostAndFoundView } from './components/LostAndFoundView'
-import { PassengerPortal } from './components/PassengerPortal'
-import { Reports } from './components/Reports'
-import Root from './components/Root'
-import { ConductorPortal } from './components/conductor/ConductorPortal'
-import AdminLayout from './components/layouts/AdminLayout'
-import ConductorLayout from './components/layouts/ConductorLayout'
-import PassengerLayout from './components/layouts/PassengerLayout'
+import { createBrowserRouter } from 'react-router';
+import { Analytics } from './components/Analytics';
+import { BusInfoPublicPage } from './components/BusInfoPublicPage';
+import { FleetManagement } from './components/FleetManagement';
+import { LiveTracking } from './components/LiveTracking';
+import { LostAndFound } from './components/LostAndFound';
+import { LostAndFoundView } from './components/LostAndFoundView';
+import { PassengerPortal } from './components/PassengerPortal';
+import { Reports } from './components/Reports';
+import Root from './components/Root';
+import { ConductorPortal } from './components/conductor/ConductorPortal';
+import AdminLayout from './components/layouts/AdminLayout';
+import ConductorLayout from './components/layouts/ConductorLayout';
+import PassengerLayout from './components/layouts/PassengerLayout';
 
 export const router = createBrowserRouter([
   {
@@ -49,4 +49,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-])
+]);

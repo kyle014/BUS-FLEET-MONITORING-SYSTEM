@@ -13,23 +13,23 @@ import {
   Users,
   X,
   XCircle,
-} from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
-import { toast } from 'sonner'
-import type { Bus as BusType } from '../types'
-import { busAPI } from '../utils/api'
-import { BusQRCode } from './BusQRCode'
+} from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
+import type { Bus as BusType } from '../types';
+import { busAPI } from '../utils/api';
+import { BusQRCode } from './BusQRCode';
 
 export function FleetManagement() {
-  const [buses, setBuses] = useState<BusType[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'idle' | 'maintenance'>('all')
-  const [showAddBusModal, setShowAddBusModal] = useState(false)
-  const [selectedBusDetails, setSelectedBusDetails] = useState<BusType | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const navigate = useNavigate()
+  const [buses, setBuses] = useState<BusType[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'idle' | 'maintenance'>('all');
+  const [showAddBusModal, setShowAddBusModal] = useState(false);
+  const [selectedBusDetails, setSelectedBusDetails] = useState<BusType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   const [newBus, setNewBus] = useState({
     plateNumber: '',
@@ -39,29 +39,29 @@ export function FleetManagement() {
     maxCapacity: 18,
     lat: 14.5995,
     lng: 120.9842,
-  })
+  });
 
   useEffect(() => {
-    loadBuses()
-  }, [])
+    loadBuses();
+  }, []);
 
   useEffect(() => {
-    if (!selectedBusDetails) return
+    if (!selectedBusDetails) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setSelectedBusDetails(null)
+        setSelectedBusDetails(null);
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedBusDetails])
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedBusDetails]);
 
   const loadBuses = async () => {
     try {
-      const response = await busAPI.getAll()
-      const busesData = response.data || []
+      const response = await busAPI.getAll();
+      const busesData = response.data || [];
 
       const formattedBuses = busesData.map((bus: any) => ({
         ...bus,
@@ -69,26 +69,26 @@ export function FleetManagement() {
           ...bus.location,
           lastUpdated: bus.location?.lastUpdated ? new Date(bus.location.lastUpdated) : new Date(),
         },
-      }))
+      }));
 
-      setBuses(formattedBuses)
-      setIsLoading(false)
+      setBuses(formattedBuses);
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error loading buses:', error)
+      console.error('Error loading buses:', error);
       if (buses.length > 0) {
-        toast.error('Failed to refresh fleet data')
+        toast.error('Failed to refresh fleet data');
       }
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const filteredBuses = buses.filter((bus) => {
     const matchesSearch =
       bus.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bus.driver.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterStatus === 'all' || bus.status === filterStatus
-    return matchesSearch && matchesFilter
-  })
+      bus.driver.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterStatus === 'all' || bus.status === filterStatus;
+    return matchesSearch && matchesFilter;
+  });
 
   const stats = {
     total: buses.length,
@@ -102,23 +102,23 @@ export function FleetManagement() {
             0,
           )
         : '0',
-  }
+  };
 
   const handleAddBus = async () => {
     if (!newBus.plateNumber || !newBus.driver || !newBus.route) {
-      toast.error('Please fill in all required fields')
-      return
+      toast.error('Please fill in all required fields');
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const generateQRCodeId = () => {
-        const cleanPlateNumber = newBus.plateNumber.replace(/\s+/g, '').toUpperCase()
-        const randomHash = Math.random().toString(36).substring(2, 8).toUpperCase()
-        return `QR-${cleanPlateNumber}-${randomHash}`
-      }
+        const cleanPlateNumber = newBus.plateNumber.replace(/\s+/g, '').toUpperCase();
+        const randomHash = Math.random().toString(36).substring(2, 8).toUpperCase();
+        return `QR-${cleanPlateNumber}-${randomHash}`;
+      };
 
-      const busId = `bus_${Date.now()}`
+      const busId = `bus_${Date.now()}`;
       const busToAdd = {
         id: busId,
         plateNumber: newBus.plateNumber,
@@ -133,11 +133,11 @@ export function FleetManagement() {
           lastUpdated: new Date().toISOString(),
         },
         qrCodeId: generateQRCodeId(),
-      }
+      };
 
-      await busAPI.create(busToAdd)
-      await loadBuses()
-      setShowAddBusModal(false)
+      await busAPI.create(busToAdd);
+      await loadBuses();
+      setShowAddBusModal(false);
 
       setNewBus({
         plateNumber: '',
@@ -147,24 +147,24 @@ export function FleetManagement() {
         maxCapacity: 18,
         lat: 14.5995,
         lng: 120.9842,
-      })
+      });
 
-      toast.success('Bus added successfully!')
+      toast.success('Bus added successfully!');
     } catch (error) {
-      console.error('Error adding bus:', error)
-      toast.error('Failed to add bus. Please try again.')
+      console.error('Error adding bus:', error);
+      toast.error('Failed to add bus. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const openBusDetails = (bus: BusType) => {
-    setSelectedBusDetails(bus)
-  }
+    setSelectedBusDetails(bus);
+  };
 
   const closeBusDetails = () => {
-    setSelectedBusDetails(null)
-  }
+    setSelectedBusDetails(null);
+  };
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8">
@@ -460,8 +460,8 @@ export function FleetManagement() {
                 <button
                   type="button"
                   onClick={() => {
-                    setSearchTerm('')
-                    setFilterStatus('all')
+                    setSearchTerm('');
+                    setFilterStatus('all');
                   }}
                   className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-600 text-white text-sm hover:bg-gray-700 transition-colors"
                 >
@@ -818,5 +818,5 @@ export function FleetManagement() {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

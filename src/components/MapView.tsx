@@ -1,65 +1,65 @@
-import 'leaflet/dist/leaflet.css'
-import { useEffect, useRef } from 'react'
-import { Bus as BusType } from '../types'
+import 'leaflet/dist/leaflet.css';
+import { useEffect, useRef } from 'react';
+import { Bus as BusType } from '../types';
 
 interface MapViewProps {
-  buses: BusType[]
-  selectedBus: BusType | null
-  onBusSelect: (bus: BusType) => void
-  height?: string
-  routePoints?: [number, number][]
+  buses: BusType[];
+  selectedBus: BusType | null;
+  onBusSelect: (bus: BusType) => void;
+  height?: string;
+  routePoints?: [number, number][];
 }
 
 export function MapView({ buses, selectedBus, onBusSelect, height = '500px', routePoints }: MapViewProps) {
-  const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<any>(null)
-  const markersRef = useRef<any[]>([])
-  const userMarkerRef = useRef<any>(null)
-  const routeLayersRef = useRef<any[]>([])
-  const gpsWatchIdRef = useRef<number | null>(null)
-  const isInitializedRef = useRef(false)
-  const hasCenteredOnUserRef = useRef(false)
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
+  const userMarkerRef = useRef<any>(null);
+  const routeLayersRef = useRef<any[]>([]);
+  const gpsWatchIdRef = useRef<number | null>(null);
+  const isInitializedRef = useRef(false);
+  const hasCenteredOnUserRef = useRef(false);
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !mapRef.current || isInitializedRef.current) return
+    if (typeof window === 'undefined' || !mapRef.current || isInitializedRef.current) return;
 
     const timeoutId = window.setTimeout(() => {
-      if (!mapRef.current || isInitializedRef.current) return
+      if (!mapRef.current || isInitializedRef.current) return;
 
       import('leaflet').then((L) => {
-        if (!mapRef.current || isInitializedRef.current) return
+        if (!mapRef.current || isInitializedRef.current) return;
 
         try {
-          const defaultCenter: [number, number] = [14.5995, 120.9842]
+          const defaultCenter: [number, number] = [14.5995, 120.9842];
 
-          const map = L.map(mapRef.current).setView(defaultCenter, 13)
-          mapInstanceRef.current = map
-          isInitializedRef.current = true
+          const map = L.map(mapRef.current).setView(defaultCenter, 13);
+          mapInstanceRef.current = map;
+          isInitializedRef.current = true;
 
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             maxZoom: 19,
-          }).addTo(map)
+          }).addTo(map);
 
           if (navigator.geolocation) {
             gpsWatchIdRef.current = navigator.geolocation.watchPosition(
               (position) => {
-                const { latitude, longitude, accuracy } = position.coords
-                const latlng: [number, number] = [latitude, longitude]
+                const { latitude, longitude, accuracy } = position.coords;
+                const latlng: [number, number] = [latitude, longitude];
 
                 if (!hasCenteredOnUserRef.current) {
-                  map.setView(latlng, 15)
-                  hasCenteredOnUserRef.current = true
+                  map.setView(latlng, 15);
+                  hasCenteredOnUserRef.current = true;
                 }
 
                 if (userMarkerRef.current) {
-                  userMarkerRef.current.remove()
+                  userMarkerRef.current.remove();
                 }
 
-                const pulseSize = isMobile ? 28 : 36
-                const dotSize = isMobile ? 10 : 14
+                const pulseSize = isMobile ? 28 : 36;
+                const dotSize = isMobile ? 10 : 14;
 
                 const userIcon = L.divIcon({
                   html: `
@@ -79,9 +79,9 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
                   className: '',
                   iconSize: [pulseSize, pulseSize],
                   iconAnchor: [pulseSize / 2, pulseSize / 2],
-                })
+                });
 
-                const userMarker = L.marker(latlng, { icon: userIcon }).addTo(map)
+                const userMarker = L.marker(latlng, { icon: userIcon }).addTo(map);
 
                 userMarker.bindPopup(
                   `
@@ -97,50 +97,50 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
                     </div>
                   `,
                   { closeButton: false, maxWidth: isMobile ? 140 : 180 },
-                )
+                );
 
-                userMarkerRef.current = userMarker
+                userMarkerRef.current = userMarker;
               },
               (error) => {
-                console.warn('GPS error:', error.message)
+                console.warn('GPS error:', error.message);
               },
               {
                 enableHighAccuracy: true,
                 maximumAge: 5000,
                 timeout: 10000,
               },
-            )
+            );
           }
         } catch (error) {
-          console.error('Error initializing map:', error)
+          console.error('Error initializing map:', error);
         }
-      })
-    }, 100)
+      });
+    }, 100);
 
     return () => {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
       if (gpsWatchIdRef.current !== null && navigator.geolocation) {
-        navigator.geolocation.clearWatch(gpsWatchIdRef.current)
-        gpsWatchIdRef.current = null
+        navigator.geolocation.clearWatch(gpsWatchIdRef.current);
+        gpsWatchIdRef.current = null;
       }
 
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove()
-        mapInstanceRef.current = null
-        isInitializedRef.current = false
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        isInitializedRef.current = false;
       }
-    }
-  }, [])
+    };
+  }, []);
 
   useEffect(() => {
-    if (!mapInstanceRef.current || typeof window === 'undefined') return
+    if (!mapInstanceRef.current || typeof window === 'undefined') return;
 
     import('leaflet').then((L) => {
-      routeLayersRef.current.forEach((layer) => layer.remove())
-      routeLayersRef.current = []
+      routeLayersRef.current.forEach((layer) => layer.remove());
+      routeLayersRef.current = [];
 
-      if (!routePoints || routePoints.length < 2) return
+      if (!routePoints || routePoints.length < 2) return;
 
       const shadow = L.polyline(routePoints, {
         color: '#000000',
@@ -148,7 +148,7 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
         opacity: 0.1,
         lineCap: 'round',
         lineJoin: 'round',
-      }).addTo(mapInstanceRef.current)
+      }).addTo(mapInstanceRef.current);
 
       const backing = L.polyline(routePoints, {
         color: '#ffffff',
@@ -156,7 +156,7 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
         opacity: 0.9,
         lineCap: 'round',
         lineJoin: 'round',
-      }).addTo(mapInstanceRef.current)
+      }).addTo(mapInstanceRef.current);
 
       const main = L.polyline(routePoints, {
         color: '#6366f1',
@@ -164,7 +164,7 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
         opacity: 0.95,
         lineCap: 'round',
         lineJoin: 'round',
-      }).addTo(mapInstanceRef.current)
+      }).addTo(mapInstanceRef.current);
 
       const dashed = L.polyline(routePoints, {
         color: '#3b82f6',
@@ -173,10 +173,10 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
         dashArray: '10, 10',
         lineCap: 'round',
         lineJoin: 'round',
-      }).addTo(mapInstanceRef.current)
+      }).addTo(mapInstanceRef.current);
 
-      const markerSize = isMobile ? 24 : 32
-      const markerIconSize = isMobile ? 12 : 16
+      const markerSize = isMobile ? 24 : 32;
+      const markerIconSize = isMobile ? 12 : 16;
 
       const startIcon = L.divIcon({
         html: `
@@ -190,7 +190,7 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
         className: '',
         iconSize: [markerSize, markerSize],
         iconAnchor: [markerSize / 2, markerSize],
-      })
+      });
 
       const endIcon = L.divIcon({
         html: `
@@ -204,41 +204,41 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
         className: '',
         iconSize: [markerSize, markerSize],
         iconAnchor: [markerSize / 2, markerSize],
-      })
+      });
 
-      const startMarker = L.marker(routePoints[0], { icon: startIcon }).addTo(mapInstanceRef.current)
-      startMarker.bindPopup('Start', { closeButton: false })
+      const startMarker = L.marker(routePoints[0], { icon: startIcon }).addTo(mapInstanceRef.current);
+      startMarker.bindPopup('Start', { closeButton: false });
 
-      const endMarker = L.marker(routePoints[routePoints.length - 1], { icon: endIcon }).addTo(mapInstanceRef.current)
-      endMarker.bindPopup('Destination', { closeButton: false })
+      const endMarker = L.marker(routePoints[routePoints.length - 1], { icon: endIcon }).addTo(mapInstanceRef.current);
+      endMarker.bindPopup('Destination', { closeButton: false });
 
-      routeLayersRef.current = [shadow, backing, main, dashed, startMarker, endMarker]
+      routeLayersRef.current = [shadow, backing, main, dashed, startMarker, endMarker];
 
-      const bounds = L.latLngBounds(routePoints)
-      mapInstanceRef.current.fitBounds(bounds, { padding: [30, 30] })
-    })
-  }, [routePoints])
+      const bounds = L.latLngBounds(routePoints);
+      mapInstanceRef.current.fitBounds(bounds, { padding: [30, 30] });
+    });
+  }, [routePoints]);
 
   useEffect(() => {
-    if (!mapInstanceRef.current || typeof window === 'undefined') return
+    if (!mapInstanceRef.current || typeof window === 'undefined') return;
 
     import('leaflet').then((L) => {
-      markersRef.current.forEach((marker) => marker.remove())
-      markersRef.current = []
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
 
       buses
         .filter((bus) => bus.status === 'active')
         .forEach((bus) => {
-          const isSelected = selectedBus?.id === bus.id
-          const maxCapacity = bus.maxCapacity || 1
-          const occupancyPercent = (bus.currentPassengers / maxCapacity) * 100
-          const colorClass = occupancyPercent < 50 ? '#10b981' : occupancyPercent < 80 ? '#f59e0b' : '#ef4444'
+          const isSelected = selectedBus?.id === bus.id;
+          const maxCapacity = bus.maxCapacity || 1;
+          const occupancyPercent = (bus.currentPassengers / maxCapacity) * 100;
+          const colorClass = occupancyPercent < 50 ? '#10b981' : occupancyPercent < 80 ? '#f59e0b' : '#ef4444';
 
-          const busNormalSize = isMobile ? 28 : 36
-          const busSelectedSize = isMobile ? 34 : 44
-          const busIconSize = isMobile ? (isSelected ? 16 : 14) : isSelected ? 22 : 18
-          const gpsBadgeSize = isMobile ? 12 : 16
-          const gpsBadgeIconSize = isMobile ? 7 : 10
+          const busNormalSize = isMobile ? 28 : 36;
+          const busSelectedSize = isMobile ? 34 : 44;
+          const busIconSize = isMobile ? (isSelected ? 16 : 14) : isSelected ? 22 : 18;
+          const gpsBadgeSize = isMobile ? 12 : 16;
+          const gpsBadgeIconSize = isMobile ? 7 : 10;
 
           const busIcon = L.divIcon({
             html: `
@@ -271,11 +271,11 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
               (isSelected ? busSelectedSize : busNormalSize) / 2,
               (isSelected ? busSelectedSize : busNormalSize) / 2,
             ],
-          })
+          });
 
           const marker = L.marker([bus.location.lat, bus.location.lng], { icon: busIcon })
             .addTo(mapInstanceRef.current)
-            .on('click', () => onBusSelect(bus))
+            .on('click', () => onBusSelect(bus));
 
           marker.bindPopup(
             `
@@ -303,13 +303,13 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
               </div>
             `,
             { maxWidth: isMobile ? 150 : 200 },
-          )
+          );
 
-          if (isSelected) marker.openPopup()
-          markersRef.current.push(marker)
-        })
-    })
-  }, [buses, selectedBus, onBusSelect])
+          if (isSelected) marker.openPopup();
+          markersRef.current.push(marker);
+        });
+    });
+  }, [buses, selectedBus, onBusSelect]);
 
   return (
     <div
@@ -399,5 +399,5 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
   }
 `}</style>
     </div>
-  )
+  );
 }
