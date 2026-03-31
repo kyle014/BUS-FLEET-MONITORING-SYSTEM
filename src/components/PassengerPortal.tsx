@@ -17,7 +17,7 @@ export function PassengerPortal() {
     // Refresh bus data every 10 seconds
     const interval = setInterval(() => {
       loadBuses();
-    }, 10000);
+    }, 15000);
 
     return () => clearInterval(interval);
   }, []);
