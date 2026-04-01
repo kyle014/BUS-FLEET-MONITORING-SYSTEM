@@ -20,7 +20,7 @@ export function LiveTracking() {
 
     const interval = setInterval(() => {
       loadBuses();
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [busId]);

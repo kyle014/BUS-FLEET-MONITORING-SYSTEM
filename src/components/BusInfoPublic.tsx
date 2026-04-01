@@ -36,7 +36,7 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
     // Refresh data every 5 seconds
     const interval = setInterval(() => {
       loadBusData();
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [busId]);

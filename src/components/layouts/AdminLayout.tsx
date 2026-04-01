@@ -7,10 +7,13 @@ import { Navbar } from '../Navbar'
 export type AdminPage = 'tracking' | 'fleet' | 'analytics' | 'reports' | 'lostandfound'
 
 export default function AdminLayout() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('adminAuthenticated') === 'true'
+  })
   const navigate = useNavigate()
 
   const handleLoginSuccess = () => {
+    localStorage.setItem('adminAuthenticated', 'true')
     setIsAuthenticated(true)
   }
 
@@ -27,8 +30,9 @@ export default function AdminLayout() {
   }
 
   const handleLogout = () => {
+    localStorage.removeItem('adminAuthenticated')
     setIsAuthenticated(false)
-    navigate('/')
+    navigate('/admin')
   }
 
   if (!isAuthenticated) {
@@ -37,7 +41,7 @@ export default function AdminLayout() {
 
   return (
     <>
-      <Navbar onNavigate={handleNavigate} userRole="admin" />
+      <Navbar onNavigate={handleNavigate} userRole="admin" logout={handleLogout} />
       <main className="pt-16">
         <Outlet />
       </main>
