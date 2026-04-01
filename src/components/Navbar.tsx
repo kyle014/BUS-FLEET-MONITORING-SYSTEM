@@ -1,13 +1,15 @@
-import { BarChart3, Bus, FileText, Map, Menu, Package, Ticket, User, X } from 'lucide-react';
+import { BarChart3, Bus, FileText, Map, Menu, Package, Ticket, User, X, LogOut } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from './ui/button';
 import { useLocation } from 'react-router';
 
 interface NavbarProps {
   onNavigate: (page: any) => void;
   userRole: 'admin' | 'conductor' | 'passenger';
+  logout?: () => void;
 }
 
-export function Navbar({ onNavigate, userRole }: NavbarProps) {
+export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -80,6 +82,8 @@ export function Navbar({ onNavigate, userRole }: NavbarProps) {
                 );
               })}
             </div>
+            <Button onClick={logout} variant="outline" size="sm" className="bg-red-500 text-white">
+                    <LogOut className="w-3 h-3 mr-1" /> Logout </Button>
 
             {/* User Menu */}
             <div className="flex items-center gap-3">
