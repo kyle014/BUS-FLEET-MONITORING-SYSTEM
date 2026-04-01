@@ -9,6 +9,7 @@ import {
   Plus,
   RotateCcw,
   Search,
+  Trash2,
   TrendingUp,
   Users,
   X,
@@ -26,12 +27,16 @@ export function FleetManagement() {
   const [buses, setBuses] = useState<BusType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "idle" | "maintenance">("all");
-  const [showAddBusModal, setShowAddBusModal] = useState(false);
+  const [showBusFormModal, setShowBusFormModal] = useState(false);
+  const [editingBus, setEditingBus] = useState<BusType | null>(null);
   const [selectedBusDetails, setSelectedBusDetails] = useState<BusType | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
 
-  const [newBus, setNewBus] = useState({
+  const emptyBusForm = {
     plateNumber: "",
     driver: "",
     route: "",
@@ -39,7 +44,35 @@ export function FleetManagement() {
     maxCapacity: 18,
     lat: 14.5995,
     lng: 120.9842,
-  });
+  };
+
+  const [busForm, setBusForm] = useState(emptyBusForm);
+
+  const openAddBusModal = () => {
+    setEditingBus(null);
+    setBusForm(emptyBusForm);
+    setShowBusFormModal(true);
+  };
+
+  const openEditBusModal = (bus: BusType) => {
+    setEditingBus(bus);
+    setBusForm({
+      plateNumber: bus.plateNumber,
+      driver: bus.driver,
+      route: bus.route,
+      status: bus.status,
+      maxCapacity: bus.maxCapacity,
+      lat: bus.location.lat,
+      lng: bus.location.lng,
+    });
+    setShowBusFormModal(true);
+  };
+
+  const closeBusFormModal = () => {
+    setShowBusFormModal(false);
+    setEditingBus(null);
+    setBusForm(emptyBusForm);
+  };
 
   useEffect(() => {
     loadBuses();
@@ -47,6 +80,8 @@ export function FleetManagement() {
     const interval = setInterval(() => {
       loadBuses();
     }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -108,57 +143,86 @@ export function FleetManagement() {
         : "0",
   };
 
-  const handleAddBus = async () => {
-    if (!newBus.plateNumber || !newBus.driver || !newBus.route) {
+  const handleDeleteBus = async () => {
+    if (!selectedBusDetails) return;
+
+    try {
+      setIsDeleting(true);
+
+      await busAPI.delete(selectedBusDetails.id);
+
+      toast.success("Bus deleted successfully!");
+      setShowDeleteConfirmModal(false);
+      setSelectedBusDetails(null);
+      await loadBuses();
+    } catch (error) {
+      console.error("Error deleting bus:", error);
+      toast.error("Failed to delete bus.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSubmitBus = async () => {
+    if (!busForm.plateNumber || !busForm.driver || !busForm.route) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
+
     try {
-      const generateQRCodeId = () => {
-        const cleanPlateNumber = newBus.plateNumber.replace(/\s+/g, "").toUpperCase();
-        const randomHash = Math.random().toString(36).substring(2, 8).toUpperCase();
-        return `QR-${cleanPlateNumber}-${randomHash}`;
-      };
+      if (editingBus) {
+        const updatedBus = {
+          ...editingBus,
+          plateNumber: busForm.plateNumber,
+          driver: busForm.driver,
+          route: busForm.route,
+          status: busForm.status,
+          maxCapacity: busForm.maxCapacity,
+          location: {
+            ...editingBus.location,
+            lat: busForm.lat,
+            lng: busForm.lng,
+            lastUpdated: new Date().toISOString(),
+          },
+        };
+        await busAPI.update(editingBus.id, updatedBus);
+        toast.success("Bus updated successfully!");
+      } else {
+        const generateQRCodeId = () => {
+          const cleanPlateNumber = busForm.plateNumber.replace(/\s+/g, "").toUpperCase();
+          const randomHash = Math.random().toString(36).substring(2, 8).toUpperCase();
+          return `QR-${cleanPlateNumber}-${randomHash}`;
+        };
 
-      const busId = `bus_${Date.now()}`;
-      const busToAdd = {
-        id: busId,
-        plateNumber: newBus.plateNumber,
-        driver: newBus.driver,
-        route: newBus.route,
-        status: newBus.status,
-        currentPassengers: 0,
-        maxCapacity: newBus.maxCapacity,
-        location: {
-          lat: newBus.lat,
-          lng: newBus.lng,
-          lastUpdated: new Date().toISOString(),
-        },
-        qrCodeId: generateQRCodeId(),
-      };
+        const busId = `bus_${Date.now()}`;
+        const busToAdd = {
+          id: busId,
+          plateNumber: busForm.plateNumber,
+          driver: busForm.driver,
+          route: busForm.route,
+          status: busForm.status,
+          currentPassengers: 0,
+          maxCapacity: busForm.maxCapacity,
+          location: {
+            lat: busForm.lat,
+            lng: busForm.lng,
+            lastUpdated: new Date().toISOString(),
+          },
+          qrCodeId: generateQRCodeId(),
+        };
+        await busAPI.create(busToAdd);
+        toast.success("Bus added successfully!");
+      }
 
-      await busAPI.create(busToAdd);
       await loadBuses();
-      setShowAddBusModal(false);
-
-      setNewBus({
-        plateNumber: "",
-        driver: "",
-        route: "",
-        status: "idle",
-        maxCapacity: 18,
-        lat: 14.5995,
-        lng: 120.9842,
-      });
-
-      toast.success("Bus added successfully!");
+      closeBusFormModal();
     } catch (error) {
-      console.error("Error adding bus:", error);
-      toast.error("Failed to add bus. Please try again.");
+      console.error("Error saving bus:", error);
+      toast.error(editingBus ? "Failed to update bus." : "Failed to add bus.");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -184,7 +248,7 @@ export function FleetManagement() {
           </div>
           {!isLoading && (
             <button
-              onClick={() => setShowAddBusModal(true)}
+              onClick={openAddBusModal}
               className="cursor-pointer px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
@@ -437,14 +501,13 @@ export function FleetManagement() {
 
                         <button
                           type="button"
-                          disabled={bus.status === "idle"}
-                          onClick={() => navigate(`/admin/tracking/${bus.id}`)}
+                          onClick={() => openEditBusModal(bus)}
                           className="cursor-pointer flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
                           bg-blue-50 text-blue-600 hover:bg-blue-100
                           disabled:bg-gray-100 disabled:text-gray-400
                           disabled:cursor-default disabled:hover:bg-gray-100"
                         >
-                          Track Live
+                          Edit Bus
                         </button>
                       </div>
 
@@ -517,6 +580,14 @@ export function FleetManagement() {
                   </div>
 
                   <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowDeleteConfirmModal(true)}
+                      type="button"
+                      className="cursor-pointer text-sm inline-flex items-center gap-2 px-4 py-2 rounded-4xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-300 transition-all"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="font-medium">Delete Bus</span>
+                    </button>
                     <span
                       className={`px-4 py-2 rounded-full text-sm font-medium text-white ${
                         selectedBusDetails.status === "active"
@@ -664,13 +735,13 @@ export function FleetManagement() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showAddBusModal && (
+        {showBusFormModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowAddBusModal(false)}
+            onClick={closeBusFormModal}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -682,11 +753,15 @@ export function FleetManagement() {
               <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-gray-900 mb-1">Add New Bus</h3>
-                    <p className="text-gray-600 text-sm">Register a new bus to the fleet</p>
+                    <h1 className="text-gray-900 text-xl sm:text-2xl font-semibold mb-1">
+                      {editingBus ? "Edit Bus" : "Add New Bus"}
+                    </h1>
+                    <p className="text-gray-600 text-sm">
+                      {editingBus ? "Update bus information" : "Register a new bus to the fleet"}
+                    </p>
                   </div>
                   <button
-                    onClick={() => setShowAddBusModal(false)}
+                    onClick={closeBusFormModal}
                     className="cursor-pointer text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-all"
                   >
                     <X className="w-5 h-5" />
@@ -703,12 +778,11 @@ export function FleetManagement() {
                     <input
                       type="text"
                       placeholder="e.g., ABC 1234"
-                      value={newBus.plateNumber}
-                      onChange={(e) => setNewBus({ ...newBus, plateNumber: e.target.value })}
+                      value={busForm.plateNumber}
+                      onChange={(e) => setBusForm({ ...busForm, plateNumber: e.target.value })}
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                     />
                   </div>
-
                   <div>
                     <label className="block text-gray-700 mb-2">
                       Driver Name <span className="text-red-500">*</span>
@@ -716,19 +790,18 @@ export function FleetManagement() {
                     <input
                       type="text"
                       placeholder="e.g., Juan Dela Cruz"
-                      value={newBus.driver}
-                      onChange={(e) => setNewBus({ ...newBus, driver: e.target.value })}
+                      value={busForm.driver}
+                      onChange={(e) => setBusForm({ ...busForm, driver: e.target.value })}
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                     />
                   </div>
-
                   <div>
                     <label className="block text-gray-700 mb-2">
                       Route <span className="text-red-500">*</span>
                     </label>
                     <select
-                      value={newBus.route}
-                      onChange={(e) => setNewBus({ ...newBus, route: e.target.value })}
+                      value={busForm.route}
+                      onChange={(e) => setBusForm({ ...busForm, route: e.target.value })}
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                     >
                       <option value="">Select a route</option>
@@ -738,14 +811,16 @@ export function FleetManagement() {
                       <option value="Coastal Road Loop">Coastal Road Loop</option>
                     </select>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-gray-700 mb-2">Initial Status</label>
                       <select
-                        value={newBus.status}
+                        value={busForm.status}
                         onChange={(e) =>
-                          setNewBus({ ...newBus, status: e.target.value as "active" | "idle" | "maintenance" })
+                          setBusForm({
+                            ...busForm,
+                            status: e.target.value as "active" | "idle" | "maintenance",
+                          })
                         }
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                       >
@@ -761,60 +836,147 @@ export function FleetManagement() {
                         type="number"
                         min="1"
                         max="50"
-                        value={newBus.maxCapacity}
-                        onChange={(e) => setNewBus({ ...newBus, maxCapacity: parseInt(e.target.value) || 18 })}
+                        value={busForm.maxCapacity}
+                        onChange={(e) => setBusForm({ ...busForm, maxCapacity: parseInt(e.target.value) || 18 })}
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                       />
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <div className="flex items-start gap-3 mb-3">
-                      <MapPin className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="text-gray-900 mb-1">Initial GPS Location</h4>
-                        <p className="text-gray-600 text-sm">Set the starting location for this bus</p>
+                  {!editingBus && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <div className="flex items-start gap-3 mb-3">
+                        <MapPin className="w-5 h-5 text-blue-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="text-gray-900 mb-1">GPS Location</h4>
+                          <p className="text-gray-600 text-sm">
+                            {editingBus
+                              ? "Update the current location for this bus"
+                              : "Set the starting location for this bus"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-gray-700 text-sm mb-1">Latitude</label>
+                          <input
+                            type="number"
+                            step="0.0001"
+                            value={busForm.lat}
+                            onChange={(e) => setBusForm({ ...busForm, lat: parseFloat(e.target.value) || 14.5995 })}
+                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-700 text-sm mb-1">Longitude</label>
+                          <input
+                            type="number"
+                            step="0.0001"
+                            value={busForm.lng}
+                            onChange={(e) => setBusForm({ ...busForm, lng: parseFloat(e.target.value) || 120.9842 })}
+                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                          />
+                        </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-gray-700 text-sm mb-1">Latitude</label>
-                        <input
-                          type="number"
-                          step="0.0001"
-                          value={newBus.lat}
-                          onChange={(e) => setNewBus({ ...newBus, lat: parseFloat(e.target.value) || 14.5995 })}
-                          className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-gray-700 text-sm mb-1">Longitude</label>
-                        <input
-                          type="number"
-                          step="0.0001"
-                          value={newBus.lng}
-                          onChange={(e) => setNewBus({ ...newBus, lng: parseFloat(e.target.value) || 120.9842 })}
-                          className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
               <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 rounded-b-2xl flex gap-3">
                 <button
-                  onClick={() => setShowAddBusModal(false)}
+                  onClick={closeBusFormModal}
                   className="cursor-pointer flex-1 px-6 py-3 bg-white text-gray-700 rounded-xl hover:bg-gray-100 transition-all border border-gray-200"
                 >
                   Cancel
                 </button>
+
                 <button
-                  onClick={handleAddBus}
-                  className="cursor-pointer flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  onClick={handleSubmitBus}
+                  disabled={isSubmitting}
+                  className="cursor-pointer flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Plus className="w-5 h-5" />
-                  Add Bus to Fleet
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>{editingBus ? "Saving Changes..." : "Adding Bus..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-5 h-5" />
+                      <span>{editingBus ? "Save Changes" : "Add Bus to Fleet"}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showDeleteConfirmModal && selectedBusDetails && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            onClick={() => {
+              if (!isDeleting) setShowDeleteConfirmModal(false);
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+
+                <div className="flex-1">
+                  <h3 className="text-gray-900 text-lg font-semibold mb-1">Delete Bus?</h3>
+                  <p className="text-gray-600 text-sm leading-6">
+                    You are about to delete{" "}
+                    <span className="font-medium text-gray-900">{selectedBusDetails.plateNumber}</span>. This action
+                    cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirmModal(false)}
+                  disabled={isDeleting}
+                  className="cursor-pointer flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDeleteBus}
+                  disabled={isDeleting}
+                  className="cursor-pointer flex-1 px-4 py-3 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-all inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      <span>Delete Bus</span>
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>
