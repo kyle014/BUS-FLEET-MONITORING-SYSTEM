@@ -37,6 +37,7 @@
     "embla-carousel-react": "^8.6.0",
     "hono": "^4.12.9",
     "input-otp": "^1.4.2",
+    "jspdf-autotable": "^5.0.7",
     "leaflet": "*",
     "lucide-react": "^0.487.0",
     "motion": "*",
