@@ -12,7 +12,7 @@ export function QrTrackingLayout() {
     } else if (page === 'lostandfound') {
       navigate(`/bus/track/${busId}/lostandfound`);
     } else {
-      navigate(`/bus/track/${busId}/${page}`);
+      navigate(`/bus/track/${busId}/${page}?busId=${busId}`);
     }
   };
 
